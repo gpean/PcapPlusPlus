@@ -212,15 +212,37 @@ void* PcapLiveDevice::statsThreadMain(void *ptr)
 
 bool PcapLiveDevice::open(DeviceMode mode)
 {
-	char errbuf[PCAP_ERRBUF_SIZE];
+	char errbuf[PCAP_ERRBUF_SIZE] = { 0 };
+
 	m_PcapDescriptor = pcap_open_live(m_Name, 9000, mode, LIBPCAP_OPEN_LIVE_TIMEOUT, errbuf);
-	m_PcapSendDescriptor = pcap_open_live(m_Name, 9000, mode, LIBPCAP_OPEN_LIVE_TIMEOUT, errbuf);
-	if (m_PcapDescriptor == NULL || m_PcapSendDescriptor == NULL)
-	{
-		LOG_ERROR("%s", errbuf);
+	if (!m_PcapDescriptor) {
+		LOG_ERROR("pcap_open_live failed: %s", errbuf);
 		m_DeviceOpened = false;
 		return false;
 	}
+
+    // Why do we open two same descriptors??
+    m_PcapSendDescriptor = m_PcapDescriptor;
+    /*m_PcapSendDescriptor = pcap_open_live(m_Name, 9000, mode, LIBPCAP_OPEN_LIVE_TIMEOUT, errbuf);
+    if (!m_PcapSendDescriptor) {
+		LOG_ERROR("pcap_open_live failed: %s", errbuf);
+		m_DeviceOpened = false;
+		return false;
+	}*/
+
+    if (pcap_set_timeout(m_PcapDescriptor, 1) != 0) {
+        LOG_ERROR("pcap_set_timeout failed");
+        pcap_close(m_PcapDescriptor);
+        m_DeviceOpened = false;
+		return false;
+    }
+
+    if (pcap_set_immediate_mode(m_PcapDescriptor, 1) != 0) {
+        LOG_ERROR("pcap_set_immediate_mode failed");
+        pcap_close(m_PcapDescriptor);
+        m_DeviceOpened = false;
+		return false;
+    }
 
 	LOG_DEBUG("Device '%s' opened", m_Name);
 
