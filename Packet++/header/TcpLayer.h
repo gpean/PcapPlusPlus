@@ -102,12 +102,15 @@ namespace pcpp
 		TCPOPT_ECHOREPLY =      7,
 		/** TCP Timestamps */
 		PCPP_TCPOPT_TIMESTAMP =      8,
+#if __APPLE__
+#else
 		/** CC (obsolete) */
 		TCPOPT_CC =             11,
 		/** CC.NEW (obsolete) */
 		TCPOPT_CCNEW =          12,
 		/** CC.ECHO(obsolete) */
 		TCPOPT_CCECHO =         13,
+#endif
 		/** MD5 Signature Option */
 		TCPOPT_MD5 =            19,
 		/** Multipath TCP */
