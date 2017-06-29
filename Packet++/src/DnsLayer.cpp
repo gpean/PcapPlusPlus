@@ -419,8 +419,8 @@ void DnsResource::setCustomDnsClass(uint16_t customValue)
 	memcpy(getRawData() + m_NameLength + sizeof(uint16_t), &customValue, sizeof(uint16_t));
 }
 
-DnsLayer::DnsLayer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet)
-	: Layer(data, dataLen, prevLayer, packet)
+DnsLayer::DnsLayer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet, bool foreignData)
+	: Layer(data, dataLen, prevLayer, packet, foreignData)
 {
 	m_Protocol = DNS;
 	m_ResourceList = NULL;

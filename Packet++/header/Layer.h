@@ -138,13 +138,15 @@ namespace pcpp
 		ProtocolType m_Protocol;
 		Layer* m_NextLayer;
 		Layer* m_PrevLayer;
+        bool m_ForeignData = false;
 
 		Layer() : m_Data(NULL), m_DataLen(0), m_Packet(NULL), m_Protocol(Unknown), m_NextLayer(NULL), m_PrevLayer(NULL) { }
 
-		Layer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet) :
+		Layer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet, bool foreignData = false) :
 			m_Data(data), m_DataLen(dataLen),
 			m_Packet(packet), m_Protocol(Unknown),
-			m_NextLayer(NULL), m_PrevLayer(prevLayer) {}
+			m_NextLayer(NULL), m_PrevLayer(prevLayer),
+            m_ForeignData(foreignData) {}
 
 		// Copy c'tor
 		Layer(const Layer& other);
