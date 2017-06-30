@@ -10,7 +10,7 @@ namespace pcpp
 
 Layer::~Layer()
 {
-	if (!m_ForeignData && !isAllocatedToPacket())
+	if (!isAllocatedToPacket())
 		delete [] m_Data;
 }
 
