@@ -42,7 +42,7 @@ bool IPcapDevice::setFilter(std::string filterAsString)
 		return false;
 	}
 
-	LOG_DEBUG("Filter set successfully");
+	LOG_DEBUG("Filter set successfully: %s", filterAsString.c_str());
 
 	return true;
 }

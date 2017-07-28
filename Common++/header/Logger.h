@@ -182,7 +182,7 @@ namespace pcpp
 				if(pcpp::LoggerPP::getInstance().isErrorStringSet()) \
 					snprintf(pcpp::LoggerPP::getInstance().getErrorString(), pcpp::LoggerPP::getInstance().getErrorStringLength(), format "\n", ## __VA_ARGS__); \
 				else \
-					fprintf(stderr, format "\n", ## __VA_ARGS__); \
+					fprintf(stderr, "PCPP: " format "\n", ## __VA_ARGS__); \
 			} \
 		} while (0)
 
