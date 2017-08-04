@@ -83,7 +83,7 @@ namespace pcpp
 		 * @param[in] destMac The destination MAC address
 		 * @param[in] etherType The EtherType to be used
 		 */
-		EthLayer(MacAddress& sourceMac, MacAddress& destMac, uint16_t etherType);
+		EthLayer(MacAddress const& sourceMac, MacAddress const& destMac, uint16_t etherType);
 
 		~EthLayer() {}
 

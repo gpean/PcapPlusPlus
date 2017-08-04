@@ -217,26 +217,27 @@ bool PcapLiveDevice::open(DeviceMode mode)
 
     pcap_t* handle = pcap_create(m_Name, error);
     if (!handle) {
-        throw std::runtime_error("Error opening pcap handle for " + std::string(m_Name) + ": " + std::string(error));
+        throw std::runtime_error("pcap_create failed for " + std::string(m_Name) + ": " + std::string(error));
     }
 
     err = pcap_set_promisc(handle, 1);
     if (err) {
-        throw std::runtime_error("Failed to set pcap handle promisc mode for " + std::string(m_Name) + ": " + std::string(pcap_strerror(err)));
+        throw std::runtime_error("pcap_set_promisc failed for " + std::string(m_Name) + ": " + std::string(pcap_statustostr(err)));
     }
 
     err = pcap_set_timeout(handle, 1);
     if (err) {
-        LOG_ERROR("pcap_set_timeout failed: %s", pcap_strerror(err));
+        LOG_ERROR("pcap_set_timeout failed: %s", pcap_statustostr(err));
     }
 
     err = pcap_set_immediate_mode(handle, 1);
     if (err) {
-        LOG_ERROR("pcap_set_immediate_mode failed: %s", pcap_strerror(err));
+        LOG_ERROR("pcap_set_immediate_mode failed: %s", pcap_statustostr(err));
     }
 
-    if (pcap_activate(handle) < 0) {
-        throw std::runtime_error("Failed to activate pcap handle for " + std::string(m_Name) + ": " + std::string(error));
+    err = pcap_activate(handle);
+    if (err) {
+        throw std::runtime_error("pcap_activate failed for " + std::string(m_Name) + ": " + std::string(pcap_statustostr(err)));
     }
 
     m_PcapSendDescriptor = m_PcapDescriptor = handle;
