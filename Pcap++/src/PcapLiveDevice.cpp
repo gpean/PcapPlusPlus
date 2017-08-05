@@ -421,7 +421,7 @@ void PcapLiveDevice::stopCapture()
 		LOG_DEBUG("Stats thread stopped for device '%s'", m_Name);
 	}
 
-	PCAP_SLEEP(1);
+	//PCAP_SLEEP(1);
 	m_StopThread = false;
 }
 
