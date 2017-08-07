@@ -452,19 +452,18 @@ bool PcapLiveDevice::sendPacket(const uint8_t* packetData, int packetDataLength)
 		return false;
 	}
 
-	if (packetDataLength > m_DeviceMtu)
-	{
-		LOG_ERROR("Packet length [%d] is larger than device MTU [%d]\n", packetDataLength, m_DeviceMtu);
-		return false;
+	if (packetDataLength > m_DeviceMtu) {
+        std::ostringstream oss;
+        oss << "Packet length [" << packetDataLength << "] is larger than device MTU [" << m_DeviceMtu << "]";
+        throw std::runtime_error(oss.str());
 	}
 
-	if (pcap_sendpacket(m_PcapSendDescriptor, packetData, packetDataLength) == -1)
-	{
-		LOG_ERROR("Error sending packet: %s\n", pcap_geterr(m_PcapSendDescriptor));
-		return false;
+	if (pcap_sendpacket(m_PcapSendDescriptor, packetData, packetDataLength) == -1) {
+        throw std::runtime_error("pcap_sendpacket failed: " + std::string(pcap_geterr(m_PcapSendDescriptor)));
 	}
 
 	LOG_DEBUG("Packet sent successfully. Packet length: %d", packetDataLength);
+
 	return true;
 }
 
