@@ -24,14 +24,24 @@ TcpStreamData::TcpStreamData()
 	m_Data = NULL;
 	m_DataLen = 0;
 	m_DeleteDataOnDestruction = false;
+    m_Connection = NULL;
 }
 
-TcpStreamData::TcpStreamData(uint8_t* tcpData, size_t tcpDataLength, ConnectionData connData)
+TcpStreamData::TcpStreamData(uint8_t* tcpData, size_t tcpDataLength, ConnectionData& connData, bool deleteDataOnDestruction)
 {
 	m_Data = tcpData;
 	m_DataLen = tcpDataLength;
-	m_Connection = connData;
-	m_DeleteDataOnDestruction = true;
+	m_Connection = &connData;
+	m_DeleteDataOnDestruction = deleteDataOnDestruction;
+}
+
+TcpStreamData::TcpStreamData(TcpStreamData const& other)
+{
+    m_Data = NULL;
+	m_DataLen = 0;
+	m_DeleteDataOnDestruction = false;
+    m_Connection = NULL;
+	copyData(other);
 }
 
 TcpStreamData::~TcpStreamData()
@@ -40,11 +50,6 @@ TcpStreamData::~TcpStreamData()
 	{
 		delete [] m_Data;
 	}
-}
-
-TcpStreamData::TcpStreamData(TcpStreamData& other)
-{
-	copyData(other);
 }
 
 TcpStreamData& TcpStreamData::operator=(const TcpStreamData& other)
@@ -144,6 +149,7 @@ void TcpReassembly::ReassemblePacket(Packet& tcpData)
 	{
 		// if it's a packet of a new connection, create a TcpReassemblyData object and add it to the active connection list
 		tcpReassemblyData = new TcpReassemblyData();
+        tcpReassemblyData->connData.srcMac = tcpData.getLayerOfType<EthLayer>()->getSourceMac();
 		tcpReassemblyData->connData.srcIP = ipLayer->getSrcIpAddress();
 		tcpReassemblyData->connData.dstIP = ipLayer->getDstIpAddress();
 		tcpReassemblyData->connData.srcPort = ntohs(tcpLayer->getTcpHeader()->portSrc);
@@ -276,8 +282,7 @@ void TcpReassembly::ReassemblePacket(Packet& tcpData)
 		// send data to the callback
 		if (tcpPayloadSize != 0 && m_OnMessageReadyCallback != NULL)
 		{
-			TcpStreamData streamData(tcpLayer->getLayerPayload(), tcpPayloadSize, tcpReassemblyData->connData);
-			streamData.setDeleteDataOnDestruction(false);
+			TcpStreamData streamData(tcpLayer->getLayerPayload(), tcpPayloadSize, tcpReassemblyData->connData, false);
 			m_OnMessageReadyCallback(sideIndex, streamData, m_UserCookie);
 		}
 
@@ -311,8 +316,7 @@ void TcpReassembly::ReassemblePacket(Packet& tcpData)
 			// send only the new data to the callback
 			if (m_OnMessageReadyCallback != NULL)
 			{
-				TcpStreamData streamData(tcpLayer->getLayerPayload() + newLength, tcpPayloadSize - newLength, tcpReassemblyData->connData);
-				streamData.setDeleteDataOnDestruction(false);
+				TcpStreamData streamData(tcpLayer->getLayerPayload() + newLength, tcpPayloadSize - newLength, tcpReassemblyData->connData, false);
 				m_OnMessageReadyCallback(sideIndex, streamData, m_UserCookie);
 			}
 		}
@@ -352,8 +356,7 @@ void TcpReassembly::ReassemblePacket(Packet& tcpData)
 		// send the data to the callback
 		if (m_OnMessageReadyCallback != NULL)
 		{
-			TcpStreamData streamData(tcpLayer->getLayerPayload(), tcpPayloadSize, tcpReassemblyData->connData);
-			streamData.setDeleteDataOnDestruction(false);
+			TcpStreamData streamData(tcpLayer->getLayerPayload(), tcpPayloadSize, tcpReassemblyData->connData, false);
 			m_OnMessageReadyCallback(sideIndex, streamData, m_UserCookie);
 		}
 
@@ -464,8 +467,7 @@ void TcpReassembly::checkOutOfOrderFragments(TcpReassemblyData* tcpReassemblyDat
 
 				if (m_OnMessageReadyCallback != NULL)
 				{
-					TcpStreamData streamData(curTcpFrag->data, curTcpFrag->dataLength, tcpReassemblyData->connData);
-					streamData.setDeleteDataOnDestruction(false);
+					TcpStreamData streamData(curTcpFrag->data, curTcpFrag->dataLength, tcpReassemblyData->connData, false);
 					m_OnMessageReadyCallback(sideIndex, streamData, m_UserCookie);
 				}
 			}
@@ -500,8 +502,7 @@ void TcpReassembly::checkOutOfOrderFragments(TcpReassemblyData* tcpReassemblyDat
 				// send only the new data to the callback
 				if (m_OnMessageReadyCallback != NULL)
 				{
-					TcpStreamData streamData(curTcpFrag->data + newLength, curTcpFrag->dataLength - newLength, tcpReassemblyData->connData);
-					streamData.setDeleteDataOnDestruction(false);
+					TcpStreamData streamData(curTcpFrag->data + newLength, curTcpFrag->dataLength - newLength, tcpReassemblyData->connData, false);
 					m_OnMessageReadyCallback(sideIndex, streamData, m_UserCookie);
 				}
 
@@ -583,7 +584,7 @@ void TcpReassembly::checkOutOfOrderFragments(TcpReassemblyData* tcpReassemblyDat
 
 				//TcpStreamData streamData(curTcpFrag->data, curTcpFrag->dataLength, tcpReassemblyData->connData);
 				//streamData.setDeleteDataOnDestruction(false);
-				TcpStreamData streamData(dataWithMissingDataText, dataWithMissingDataTextLen, tcpReassemblyData->connData);
+				TcpStreamData streamData(dataWithMissingDataText, dataWithMissingDataTextLen, tcpReassemblyData->connData, true);
 				m_OnMessageReadyCallback(sideIndex, streamData, m_UserCookie);
 
 				LOG_DEBUG("Found missing data on side %d: %d byte are missing. Sending the closest fragment which is in size %d + missing text message which size is %d",

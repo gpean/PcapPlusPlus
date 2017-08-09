@@ -88,7 +88,7 @@ namespace pcpp
 		 * Returns a std::string representation of the address
 		 * @return A string representation of the address
 		 */
-		std::string toString();
+		std::string toString() const;
 
 		/**
 		 * Allocates a byte array of length 6 and copies address value into it. Array deallocation is user responsibility

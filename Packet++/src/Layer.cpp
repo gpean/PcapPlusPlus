@@ -10,14 +10,13 @@ namespace pcpp
 
 Layer::~Layer()
 {
-	if (!isAllocatedToPacket())
+	if (!isAllocatedToPacket() && m_OwnData)
 		delete [] m_Data;
 }
 
-Layer::Layer(const Layer& other) : m_DataLen(other.m_DataLen), m_Packet(NULL), m_Protocol(other.m_Protocol), m_NextLayer(NULL), m_PrevLayer(NULL)
+Layer::Layer(const Layer& other)
 {
-	m_Data = new uint8_t[other.m_DataLen];
-	memcpy(m_Data, other.m_Data, other.m_DataLen);
+	*this = other;
 }
 
 Layer& Layer::operator=(const Layer& other)
@@ -25,7 +24,7 @@ Layer& Layer::operator=(const Layer& other)
 	if (this == &other)
 		return *this;
 
-	if (m_Data != NULL)
+	if (m_Data != NULL && !isAllocatedToPacket() && m_OwnData)
 		delete [] m_Data;
 
 	m_DataLen = other.m_DataLen;
@@ -35,6 +34,7 @@ Layer& Layer::operator=(const Layer& other)
 	m_PrevLayer = NULL;
 	m_Data = new uint8_t[other.m_DataLen];
 	memcpy(m_Data, other.m_Data, other.m_DataLen);
+    m_OwnData = true;
 
 	return *this;
 }
@@ -66,6 +66,7 @@ bool Layer::extendLayer(int offsetInLayer, size_t numOfBytesToExtend)
 		delete [] m_Data;
 		m_Data = newData;
 		m_DataLen += numOfBytesToExtend;
+        m_OwnData = true;
 		return true;
 	}
 
@@ -94,6 +95,7 @@ bool Layer::shortenLayer(int offsetInLayer, size_t numOfBytesToShorten)
 		delete [] m_Data;
 		m_Data = newData;
 		m_DataLen -= numOfBytesToShorten;
+        m_OwnData = true;
 		return true;
 	}
 

@@ -442,6 +442,7 @@ namespace pcpp
 		 * @param[in] packet A pointer to the Packet instance where layer will be stored in
 		 */
 		DnsLayer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet);
+        DnsLayer(uint8_t* data, size_t dataLen, bool ownData);
 
 		/**
 		 * A constructor that creates an empty DNS layer: all members of dnshdr are set to 0 and layer will contain no records
@@ -459,6 +460,9 @@ namespace pcpp
 		DnsLayer& operator=(const DnsLayer& other);
 
 		virtual ~DnsLayer();
+
+        // Looks up the EDNS record
+        DnsResource* getOptionRecord();
 
 		/**
 		 * Get a pointer to the DNS header (as opposed to the DNS data which is the queries, answers, etc. Data can be retrieved through the

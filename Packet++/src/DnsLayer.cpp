@@ -279,11 +279,13 @@ std::string DnsResource::getDataAsString()
 
 	default:
 	{
-		std::stringstream sstream;
-	    sstream << "0x" << std::hex;
-	    for(size_t i = 0; i < dataLength; i++)
-	        sstream << std::setw(2) << std::setfill('0') << (int)resourceRawData[i];
-	    result = sstream.str();
+        if (dataLength) {
+            std::stringstream sstream;
+            sstream << "0x" << std::hex;
+            for(size_t i = 0; i < dataLength; i++)
+                sstream << std::setw(2) << std::setfill('0') << (int)resourceRawData[i];
+            result = sstream.str();
+        }
 
 		break;
 	}
@@ -419,6 +421,20 @@ void DnsResource::setCustomDnsClass(uint16_t customValue)
 	memcpy(getRawData() + m_NameLength + sizeof(uint16_t), &customValue, sizeof(uint16_t));
 }
 
+DnsLayer::DnsLayer(uint8_t* data, size_t dataLen, bool ownData)
+	: Layer(data, dataLen, ownData)
+{
+	m_Protocol = DNS;
+	m_ResourceList = NULL;
+
+	m_FirstQuery = NULL;
+	m_FirstAnswer = NULL;
+	m_FirstAuthority = NULL;
+	m_FirstAdditional = NULL;
+
+	parseResources();
+}
+
 DnsLayer::DnsLayer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet)
 	: Layer(data, dataLen, prevLayer, packet)
 {
@@ -495,6 +511,20 @@ DnsLayer::~DnsLayer()
 		delete curResource;
 		curResource = nextResource;
 	}
+}
+
+DnsResource* DnsLayer::getOptionRecord() {
+    auto additionalRecord = getFirstAdditionalRecord();
+    for (;;) {
+        if (!additionalRecord) {
+            break;
+        }
+        if (int(additionalRecord->getDnsType()) == DNS_TYPE_OPT) {
+            return additionalRecord;
+        }
+        additionalRecord = getNextAdditionalRecord(additionalRecord);
+    }
+    return nullptr;
 }
 
 bool DnsLayer::extendLayer(int offsetInLayer, size_t numOfBytesToExtend, IDnsResource* resource)

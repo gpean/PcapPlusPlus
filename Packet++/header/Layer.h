@@ -132,19 +132,24 @@ namespace pcpp
 		virtual std::string toString() = 0;
 
 	protected:
-		uint8_t* m_Data;
-		size_t m_DataLen;
-		Packet* m_Packet;
-		ProtocolType m_Protocol;
-		Layer* m_NextLayer;
-		Layer* m_PrevLayer;
+		uint8_t* m_Data = nullptr;
+		size_t m_DataLen = 0;
+		Packet* m_Packet = nullptr;
+		ProtocolType m_Protocol = Unknown;
+		Layer* m_NextLayer = nullptr;
+		Layer* m_PrevLayer = nullptr;
+        bool m_OwnData = false;
 
-		Layer() : m_Data(NULL), m_DataLen(0), m_Packet(NULL), m_Protocol(Unknown), m_NextLayer(NULL), m_PrevLayer(NULL) { }
+		Layer() = default;
 
 		Layer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet) :
 			m_Data(data), m_DataLen(dataLen),
-			m_Packet(packet), m_Protocol(Unknown),
-			m_NextLayer(NULL), m_PrevLayer(prevLayer) {}
+			m_Packet(packet), m_PrevLayer(prevLayer),
+            m_OwnData(true) {}
+
+        Layer(uint8_t* data, size_t dataLen, bool ownData) :
+			m_Data(data), m_DataLen(dataLen),
+			m_OwnData(ownData) {}
 
 		// Copy c'tor
 		Layer(const Layer& other);

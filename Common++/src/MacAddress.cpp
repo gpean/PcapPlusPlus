@@ -41,7 +41,7 @@ MacAddress::MacAddress(const MacAddress& other)
 	m_IsValid = true;
 }
 
-std::string MacAddress::toString()
+std::string MacAddress::toString() const
 {
 	char str[19];
 	sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",m_Address[0], m_Address[1], m_Address[2], m_Address[3], m_Address[4],m_Address[5]);

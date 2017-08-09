@@ -3,6 +3,7 @@
 
 #include <Packet.h>
 #include <IpAddress.h>
+#include <EthLayer.h>
 #include <PointerVector.h>
 #include <map>
 
@@ -61,6 +62,7 @@ namespace pcpp
  */
 struct ConnectionData
 {
+    MacAddress srcMac;
 	/** Source IP address */
 	IPv4Address srcIP;
 	/** Destination IP address */
@@ -75,7 +77,7 @@ struct ConnectionData
 	/**
 	 * A c'tor for this struct that basically zeros all members
 	 */
-	ConnectionData() : srcIP(IPv4Address::Zero), dstIP(IPv4Address::Zero), srcPort(0), dstPort(0), flowKey(0) {}
+	ConnectionData() : srcMac(MacAddress::Zero), srcIP(IPv4Address::Zero), dstIP(IPv4Address::Zero), srcPort(0), dstPort(0), flowKey(0) {}
 };
 
 
@@ -104,7 +106,7 @@ public:
 	 * @param[in] tcpDataLength The length of the buffer
 	 * @param[in] connData TCP connection information for this TCP data
 	 */
-	TcpStreamData(uint8_t* tcpData, size_t tcpDataLength, ConnectionData connData);
+	TcpStreamData(uint8_t* tcpData, size_t tcpDataLength, ConnectionData& connData, bool deleteDataOnDestruction);
 
 	/**
 	 * A d'tor for this class
@@ -116,7 +118,7 @@ public:
 	 * stays valid. When this instance is destroyed it also frees the data buffer
 	 * @param[in] other The instance to copy from
 	 */
-	TcpStreamData(TcpStreamData& other);
+	TcpStreamData(TcpStreamData const& other);
 
 	/**
 	 * Overload of the assignment operator. Notice the data buffer is copied from the source instance to this instance, so even if the source instance is destroyed the data in this instance
@@ -130,24 +132,24 @@ public:
 	 * A getter for the data buffer
 	 * @return A pointer to the buffer
 	 */
-	inline uint8_t* getData() { return m_Data; }
+	uint8_t* getData() { return m_Data; }
 
 	/**
 	 * A getter for buffer length
 	 * @return Buffer length
 	 */
-	inline size_t getDataLength() { return m_DataLen; }
+	size_t getDataLength() { return m_DataLen; }
 
 	/**
 	 * A getter for the connection data
 	 * @return The connection data
 	 */
-	inline ConnectionData getConnectionData() { return m_Connection; }
+	ConnectionData const& getConnectionData() const { return *m_Connection; }
 
 private:
 	uint8_t* m_Data;
 	size_t m_DataLen;
-	ConnectionData m_Connection;
+	ConnectionData* m_Connection;
 	bool m_DeleteDataOnDestruction;
 
 	void setDeleteDataOnDestruction(bool flag) { m_DeleteDataOnDestruction = flag; }
@@ -181,7 +183,7 @@ public:
 	 * @param[in] tcpData The TCP data itself + connection information
 	 * @param[in] userCookie A pointer to the cookie provided by the user in TcpReassembly c'tor (or NULL if no cookie provided)
 	 */
-	typedef void (*OnTcpMessageReady)(int side, TcpStreamData tcpData, void* userCookie);
+	typedef void (*OnTcpMessageReady)(int side, TcpStreamData& tcpData, void* userCookie);
 
 	/**
 	 * @typedef OnTcpConnectionStart
@@ -189,7 +191,7 @@ public:
 	 * @param[in] connectionData Connection information
 	 * @param[in] userCookie A pointer to the cookie provided by the user in TcpReassembly c'tor (or NULL if no cookie provided)
 	 */
-	typedef void (*OnTcpConnectionStart)(ConnectionData connectionData, void* userCookie);
+	typedef void (*OnTcpConnectionStart)(ConnectionData& connectionData, void* userCookie);
 
 	/**
 	 * @typedef OnTcpConnectionEnd
@@ -198,7 +200,7 @@ public:
 	 * @param[in] reason The reason for connection termination: FIN/RST packet or manually by the user
 	 * @param[in] userCookie A pointer to the cookie provided by the user in TcpReassembly c'tor (or NULL if no cookie provided)
 	 */
-	typedef void (*OnTcpConnectionEnd)(ConnectionData connectionData, ConnectionEndReason reason, void* userCookie);
+	typedef void (*OnTcpConnectionEnd)(ConnectionData& connectionData, ConnectionEndReason reason, void* userCookie);
 
 	/**
 	 * A c'tor for this class
