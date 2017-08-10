@@ -130,7 +130,6 @@ void TcpReassembly::ReassemblePacket(Packet& tcpData)
 		tcpPayloadSize = tcpLayer->getLayerPayloadSize();
 	}
 
-
 	TcpReassemblyData* tcpReassemblyData = NULL;
 
 	// calculate flow key for this packet
@@ -147,13 +146,16 @@ void TcpReassembly::ReassemblePacket(Packet& tcpData)
 	std::map<uint32_t, TcpReassemblyData*>::iterator iter = m_ConnectionList.find(flowKey);
 	if (iter == m_ConnectionList.end())
 	{
+        auto eth = tcpData.getLayerOfType<EthLayer>();
 		// if it's a packet of a new connection, create a TcpReassemblyData object and add it to the active connection list
 		tcpReassemblyData = new TcpReassemblyData();
-        tcpReassemblyData->connData.srcMac = tcpData.getLayerOfType<EthLayer>()->getSourceMac();
+        tcpReassemblyData->connData.srcMac = eth->getSourceMac();
+        tcpReassemblyData->connData.dstMac = eth->getDestMac();
 		tcpReassemblyData->connData.srcIP = ipLayer->getSrcIpAddress();
 		tcpReassemblyData->connData.dstIP = ipLayer->getDstIpAddress();
 		tcpReassemblyData->connData.srcPort = ntohs(tcpLayer->getTcpHeader()->portSrc);
 		tcpReassemblyData->connData.dstPort = ntohs(tcpLayer->getTcpHeader()->portDst);
+        //tcpReassemblyData->connData.tcpHdr = *tcpLayer->getTcpHeader();
 		tcpReassemblyData->connData.flowKey = flowKey;
 
 		m_ConnectionList[flowKey] = tcpReassemblyData;

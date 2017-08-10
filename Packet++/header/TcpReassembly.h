@@ -4,6 +4,7 @@
 #include <Packet.h>
 #include <IpAddress.h>
 #include <EthLayer.h>
+#include <TcpLayer.h>
 #include <PointerVector.h>
 #include <map>
 
@@ -62,22 +63,19 @@ namespace pcpp
  */
 struct ConnectionData
 {
-    MacAddress srcMac;
+    MacAddress srcMac = MacAddress::Zero;
+    MacAddress dstMac = MacAddress::Zero;
 	/** Source IP address */
-	IPv4Address srcIP;
+	IPv4Address srcIP = IPv4Address::Zero;
 	/** Destination IP address */
-	IPv4Address dstIP;
+	IPv4Address dstIP = IPv4Address::Zero;
 	/** Source TCP/UDP port */
-	size_t srcPort;
+	size_t srcPort = 0;
 	/** Destination TCP/UDP port */
-	size_t dstPort;
+	size_t dstPort = 0;
+    //tcphdr tcpHdr = { 0 };
 	/** A 4-byte hash key representing the connection */
-	uint32_t flowKey;
-
-	/**
-	 * A c'tor for this struct that basically zeros all members
-	 */
-	ConnectionData() : srcMac(MacAddress::Zero), srcIP(IPv4Address::Zero), dstIP(IPv4Address::Zero), srcPort(0), dstPort(0), flowKey(0) {}
+	uint32_t flowKey = 0;
 };
 
 
